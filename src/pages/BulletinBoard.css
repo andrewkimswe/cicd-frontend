@@ -1,0 +1,187 @@
+.board-container {
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    margin: 40px auto;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: black;
+    font-family: 'Helvetica Neue', sans-serif;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.board-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.board-title {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.logout-button {
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background-color: #d32f2f;
+}
+
+.create-post-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.create-post-button:hover {
+    background-color: #45a049;
+}
+
+.post-item {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.post-title {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination button {
+    background-color: #5b9bd5;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination button:hover {
+    background-color: #357db5;
+}
+
+.search-bar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.search-bar input {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex-grow: 1;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    background-color: #5b9bd5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .board-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .create-post-button, .logout-button {
+        margin-top: 10px;
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+.post-item {
+    /* 게시물 스타일 */
+    margin-bottom: 20px;
+}
+
+.post-info {
+    /* 게시물 정보 스타일 */
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.post-info > span {
+    margin-right: 10px;
+}
+
+.filter-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.filter-button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.filter-button.active {
+    background-color: #5b9bd5;
+    color: white;
+}
+
+.post-info span {
+    margin-right: 10px; /* 오른쪽에 10px 간격 추가 */
+}
+
+.post-info {
+    display: flex;
+    justify-content: space-between; /* 요소 사이에 공간을 균등하게 배분 */
+}
+
+.post-info {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5개의 열로 구성, 각 열은 동일한 크기 */
+    gap: 10px; /* 열 사이의 간격 */
+}
+
+
+/* 미디어 쿼리를 사용하여 모바일 화면에서도 잘 보이게 조정 */
+@media (max-width: 768px) {
+    .filter-button {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+}

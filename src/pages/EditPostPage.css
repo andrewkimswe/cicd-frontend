@@ -1,0 +1,134 @@
+/* EditPostPage.css */
+
+.edit-post-container {
+    margin: 40px auto;
+    padding: 20px;
+    max-width: 600px;
+    background: linear-gradient(135deg, #6e8efb, #a777e3); /* 홈 화면과 같은 배경 */
+    color: #FFFFFF;
+    font-family: 'Helvetica Neue', sans-serif;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.edit-post-container h1 {
+    text-align: center;
+    color: #333;
+    font-size: 2.2rem;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    width: 100%; /* 너비를 100%로 설정 */
+    margin: 0 auto; /* 중앙 정렬 */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    height: 200px;
+    resize: none;
+}
+
+button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #5b9bd5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #4a8bc2;
+}
+
+/* 파일 입력 컨테이너 스타일 */
+.file-input-container {
+    text-align: center; /* 텍스트 중앙 정렬 */
+}
+
+.file-input-container input[type="file"] {
+    width: 100%; /* 너비를 100%로 설정 */
+    margin-bottom: 5px; /* 아래 여백 추가 */
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.button-container button {
+    background-color: #007bff; /* 버튼 배경색 변경 */
+    color: #fff; /* 버튼 텍스트 색상 변경 */
+    border: none; /* 버튼 테두리 제거 */
+    padding: 10px 20px; /* 여백 조정 */
+    border-radius: 5px; /* 버튼 모서리를 둥글게 만듭니다. */
+    cursor: pointer; /* 커서 스타일 변경 */
+    transition: background-color 0.2s ease; /* 부드러운 배경색 전환 애니메이션 추가 */
+}
+
+.button-container button:hover {
+    background-color: #0056b3; /* 버튼 호버 상태일 때 배경색 변경 */
+}
+
+
+/* Edit Post 컨테이너 상단 패딩 조정 */
+.edit-post-container {
+    padding-top: 20px; /* 상단 패딩을 20px로 변경 */
+}
+
+/* 파일 업로드 버튼 스타일 */
+.custom-file-upload {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #3498db; /* 배경색 변경 */
+    color: white;
+    border: none;
+    border-radius: 6px; /* 모서리를 더 둥글게 만듭니다. */
+    cursor: pointer;
+    font-size: 1rem; /* 폰트 크기 변경 */
+    transition: background 0.3s ease; /* 부드러운 배경색 전환 애니메이션 추가 */
+}
+
+.custom-file-upload:hover {
+    background: #2980b9; /* 호버 상태 배경색 변경 */
+}
+
+.submit-button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.submit-button:hover {
+    background: #2980b9;
+}
+
+/* Style adjustments for icons if you use FontAwesome or similar */
+.fa {
+    margin-right: 8px;
+}
