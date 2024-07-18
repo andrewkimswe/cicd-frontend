@@ -4,6 +4,7 @@ pipeline {
         NODE_VERSION = '14'
         REACT_APP_API_URL = 'http://localhost:3000/api' // 실제 배포 시에는 외부에서 접근 가능한 API로 변경
         VERSION = "${env.BUILD_NUMBER}"
+        GITHUB_TOKEN = credentials('github-token')
         DOCKERHUB_USERNAME = credentials('dockerhub-username') // DockerHub 사용자 이름
         DOCKERHUB_CREDENTIALS_ID = credentials('docker-hub-credentials') // DockerHub 자격 증명 ID
         K8S_DEPLOYMENT_NAME = 'frontend-deployment' // Kubernetes 배포 이름, 배포 후 입력
@@ -12,7 +13,12 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'github-token', url: 'https://github.com/andrewkimswe/cicd-frontend.git'
+                script {
+                    sh """
+                    git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+                    git clone https://github.com/andrewkimswe/cicd-frontend.git
+                    """
+                }
             }
         }
         stage('Install dependencies') {
