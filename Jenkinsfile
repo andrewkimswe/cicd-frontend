@@ -12,14 +12,20 @@ pipeline {
     }
     stages {
         stage('Checkout') {
-            steps {
-                script {
-                    sh """
-                    git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
-                    git clone https://github.com/andrewkimswe/cicd-frontend.git
-                    """
+                    steps {
+                        script {
+                            withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
+                                if [ -d "cicd-frontend" ]; then
+                                    rm -rf cicd-frontend
+                                fi
+                                git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+                                git clone https://github.com/andrewkimswe/cicd-frontend.git
+                                """
+                            }
+                        }
+                    }
                 }
-            }
         }
         stage('Install dependencies') {
             steps {
