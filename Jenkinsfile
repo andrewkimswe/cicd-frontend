@@ -71,7 +71,7 @@ pipeline {
     post {
         failure {
             script {
-                sh "kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}"
+            sh "kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}"
             }
         }
     }
