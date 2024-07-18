@@ -1,8 +1,10 @@
 module.exports = {
     transform: {
-        "^.+\\.(js|jsx)$": "babel-jest"
+        "^.+\\.(js|jsx)$": "<rootDir>/jest-transform.js"
     },
-    transformIgnorePatterns: ["<rootDir>/node_modules/"],
+    transformIgnorePatterns: [
+        "/node_modules/(?!axios/)"
+    ],
     testEnvironment: "jsdom",
     moduleFileExtensions: ["js", "jsx"],
     moduleNameMapper: {
