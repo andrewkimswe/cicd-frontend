@@ -3,5 +3,9 @@ module.exports = {
         "^.+\\.(js|jsx)$": "babel-jest"
     },
     transformIgnorePatterns: ["<rootDir>/node_modules/"],
-    testEnvironment: "jsdom"
+    testEnvironment: "jsdom",
+    moduleFileExtensions: ["js", "jsx"],
+    moduleNameMapper: {
+        "\\.(css|less|scss|sass)$": "identity-obj-proxy"
+    }
 };
