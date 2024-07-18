@@ -1,12 +1,6 @@
 module.exports = {
     transform: {
-        "^.+\\.jsx?$": "babel-jest",
+        "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
     },
-    transformIgnorePatterns: [
-        "/node_modules/(?!axios/).+\\.js$",
-    ],
-    moduleNameMapper: {
-        "\\.(css|less)$": "identity-obj-proxy"
-    },
-    testEnvironment: "jsdom"
+    transformIgnorePatterns: ["<rootDir>/node_modules/"]
 };
