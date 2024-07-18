@@ -29,7 +29,7 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 dir('cicd-frontend/src/main/frontend') {
-                    sh 'npm ci'
+                    sh 'npm install'
                 }
             }
         }
