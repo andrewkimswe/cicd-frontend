@@ -48,10 +48,9 @@ pipeline {
             }
         }
         stage('Docker Build and Push') {
-            steps {
-                script {
-                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
-                        def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}", "cicd-frontend/src/main/frontend/.")
+                    steps {
+                        script {
+                            def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}", "cicd-frontend/src/main/frontend/.")
                             docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
                                 myApp.push()
                                 myApp.push('latest')
@@ -59,8 +58,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
