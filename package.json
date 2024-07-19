@@ -39,6 +39,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/core": "^7.24.9",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-private-property-in-object": "^7.24.7",
     "@babel/plugin-transform-runtime": "^7.24.7",
@@ -48,5 +49,13 @@
     "es-jest": "^2.1.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.5.1"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(js|jsx)$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!axios)"
+    ]
   }
 }
