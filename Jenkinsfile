@@ -51,7 +51,7 @@ pipeline {
                     steps {
                         script {
                             def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}",
-                                "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/frontend/Dockerfile cicd-frontend/frontend")
+                                "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/Dockerfile cicd-frontend")
                             docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
                                 myApp.push()
                                 myApp.push('latest')
