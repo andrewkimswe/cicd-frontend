@@ -28,21 +28,21 @@ pipeline {
         }
         stage('Install dependencies') {
             steps {
-                dir('cicd-frontend/src/main/frontend') {
+                dir('cicd-frontend/frontend') {
                     sh 'npm install'
                 }
             }
         }
         stage('Test') {
             steps {
-                dir('cicd-frontend/src/main/frontend') {
+                dir('cicd-frontend/frontend') {
                     sh 'npm run test'
                 }
             }
         }
         stage('Build') {
             steps {
-                dir('cicd-frontend/src/main/frontend') {
+                dir('cicd-frontend/frontend') {
                     sh 'npm run build'
                 }
             }
@@ -51,7 +51,7 @@ pipeline {
                     steps {
                         script {
                             def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}",
-                                "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/src/main/frontend/Dockerfile cicd-frontend/src/main/frontend")
+                                "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/frontend/Dockerfile cicd-frontend/frontend")
                             docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
                                 myApp.push()
                                 myApp.push('latest')
