@@ -1,9 +1,11 @@
 # 빌드 단계
-FROM node:alpine as build
+FROM node:14-alpine as build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 COPY . .
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 RUN npm run build
 
 # 실행 단계

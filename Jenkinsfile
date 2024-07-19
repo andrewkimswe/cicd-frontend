@@ -48,16 +48,17 @@ pipeline {
             }
         }
         stage('Docker Build and Push') {
-                    steps {
-                        script {
-                            def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}", "cicd-frontend/src/main/frontend/.")
-                            docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
-                                myApp.push()
-                                myApp.push('latest')
-                            }
-                        }
+            steps {
+                script {
+                    def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}",
+                        "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} cicd-frontend/src/main/frontend/.")
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
+                        myApp.push()
+                        myApp.push('latest')
                     }
                 }
+            }
+        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
