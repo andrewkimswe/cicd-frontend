@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import OAuth2LoginButtons from '../components/OAuth2LoginButtons';
 import './SignUp.css'; // Reuse the same CSS file for styling
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function Signup() {
     const [email, setEmail] = useState('');

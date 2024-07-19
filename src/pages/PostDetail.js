@@ -15,8 +15,11 @@ function PostDetail() {
 
     useEffect(() => {
         fetchPost();
-        fetchComments();
     }, [postId]);
+
+    useEffect(() => {
+        fetchComments();
+    }, [postId, page]);
 
     const navigateToBulletinBoard = () => {
         navigate('/posts');
@@ -39,7 +42,7 @@ function PostDetail() {
         const confirmed = window.confirm("Are you sure you want to delete this post?");
         if (!confirmed) return;
         const password = prompt("Please enter your password to delete this post:");
-        if (!password) return; // 사용자가 취소 또는 비밀번호 입력하지 않은 경우 early return
+        if (!password) return;
         const config = { data: { password } };
         try {
             await axios.delete(`http://localhost:8080/api/posts/${postId}`, config);
@@ -62,18 +65,14 @@ function PostDetail() {
     const fetchComments = async () => {
         try {
             const response = await axios.get(`http://localhost:8080/api/comments/posts/${postId}?page=${page}&size=10`);
-            console.log('Comments response:', response.data); // 이 부분 추가
             if (response.data && response.data.content) {
                 setComments(prevComments => [...prevComments, ...response.data.content]);
-                setPage(prevPage => prevPage + 1);
                 setHasMore(!response.data.last);
             }
         } catch (error) {
             console.error("Error fetching comments:", error);
         }
     };
-
-
 
     const handleNewCommentSubmit = async (e) => {
         e.preventDefault();
@@ -86,7 +85,8 @@ function PostDetail() {
                 password: password
             });
             setNewComment('');
-            fetchComments();
+            setPage(0);
+            setComments([]);
         } catch (error) {
             console.error("Error submitting comment:", error);
         }
@@ -97,38 +97,34 @@ function PostDetail() {
         const password = prompt('Enter your password:');
         if (newCommentText && password) {
             try {
-                await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
-                    headers: {
-                        'Password': password
-                    }
+                await axios.put(`http://localhost:8080/api/comments/${commentId}`, {
+                    content: newCommentText,
+                    password: password
                 });
-                fetchComments();
+                setPage(0);
+                setComments([]);
             } catch (error) {
                 console.error('Error updating comment:', error);
             }
         }
     };
 
-
-
     const handleDeleteComment = async (commentId) => {
         const password = prompt('Enter your password:');
         if (password) {
             try {
-                // axios.delete 요청을 보낼 때, 두 번째 인자로 설정 객체를 전달합니다.
-                // 이 설정 객체 내에 headers 객체를 포함시켜 'Password' 헤더에 비밀번호를 설정합니다.
                 await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
                     headers: {
                         'Password': password
                     }
                 });
-                fetchComments(); // 성공 후 댓글 목록 새로고침
+                setPage(0);
+                setComments([]);
             } catch (error) {
                 console.error('Error deleting comment:', error);
             }
         }
     };
-
 
     return (
         <div className="post-detail-container">
@@ -144,7 +140,6 @@ function PostDetail() {
             {post?.imagePath && (
                 <img src={post.imagePath} alt="Post attachment" style={{ maxWidth: '100%' }} />
             )}
-
             {post?.filePath && (
                 <div>
                     <a href={post.filePath} target="_blank" rel="noopener noreferrer">Download Attached File</a>
@@ -155,7 +150,7 @@ function PostDetail() {
                 <h2>Comments</h2>
                 <InfiniteScroll
                     dataLength={comments.length}
-                    next={fetchComments}
+                    next={() => setPage(page + 1)}
                     hasMore={hasMore}
                     loader={<h4>Loading...</h4>}
                 >

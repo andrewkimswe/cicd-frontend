@@ -4,33 +4,35 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './EditPostPage.css';
 
 function EditPostPage() {
-    const [post, setPost] = useState({ title: '', content: '', nickname: '' });
-    const [errors, setErrors] = useState({ title: '', content: '' }); // 추가: 에러 상태
+    const [post, setPost] = useState({ title: '', content: '', nickname: '', type: '' });
+    const [errors, setErrors] = useState({ title: '', content: '' });
     const { postId } = useParams();
     const navigate = useNavigate();
     const [image, setImage] = useState(null);
     const [file, setFile] = useState(null);
-    const [userRole, setUserRole] = useState('USER');
-
-
-    useEffect(() => {
-        fetchPostData();
-    }, [postId]);
+    const [userRole] = useState('USER');
 
     const fetchPostData = async () => {
         try {
             const response = await axios.get(`http://localhost:8080/api/posts/${postId}`);
             const postData = response.data;
-            setPost({
-                title: postData.title,
-                content: postData.content,
-                nickname: postData.nickname,
-                type: postData.type  // 게시글 타입도 상태에 저장
-            });
+            setPost(prevPost => ({
+                ...prevPost,
+                title: postData.title || '',
+                content: postData.content || '',
+                nickname: postData.nickname || '',
+                type: postData.type || ''
+            }));
         } catch (error) {
             console.error('Error fetching post:', error);
         }
     };
+
+    useEffect(() => {
+        fetchPostData().catch(error => {
+            console.error("Failed to fetch post data:", error);
+        });
+    }, [postId]);
 
     const navigateToBulletinBoard = () => {
         navigate('/posts');
@@ -38,14 +40,15 @@ function EditPostPage() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setPost((prevPost) => ({ ...prevPost, [name]: value }));
+        setPost(prevPost => ({ ...prevPost, [name]: value }));
 
         if (name === 'title') {
-            setErrors((prevErrors) => ({ ...prevErrors, title: value ? '' : 'Title is required' }));
+            setErrors(prevErrors => ({ ...prevErrors, title: value ? '' : 'Title is required' }));
         } else if (name === 'content') {
-            setErrors((prevErrors) => ({ ...prevErrors, content: value ? '' : 'Content is required' }));
+            setErrors(prevErrors => ({ ...prevErrors, content: value ? '' : 'Content is required' }));
         }
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -73,11 +76,11 @@ function EditPostPage() {
             formData.append('password', enteredPassword);
 
             if (image) {
-                formData.append('image', image); // 이미지 첨부
+                formData.append('image', image);
             }
 
             if (file) {
-                formData.append('file', file); // 파일 첨부
+                formData.append('file', file);
             }
 
             await axios.put(`http://localhost:8080/api/posts/${postId}`, formData, {
@@ -93,8 +96,6 @@ function EditPostPage() {
             }
         }
     };
-
-
 
     return (
         <div className="edit-post-container">
@@ -126,7 +127,6 @@ function EditPostPage() {
                     />
                     {errors.content && <span className="error">{errors.content}</span>}
                 </div>
-
                 <div className="form-group">
                     <label htmlFor="image" className="custom-file-upload">
                         <i className="fa fa-cloud-upload"></i> Upload Image
@@ -138,7 +138,6 @@ function EditPostPage() {
                         style={{ display: 'none' }}
                     />
                 </div>
-
                 <div className="form-group">
                     <label htmlFor="file" className="custom-file-upload">
                         <i className="fa fa-cloud-upload"></i> Upload File
