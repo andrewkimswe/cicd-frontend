@@ -49,8 +49,7 @@
     "babel-jest": "^29.7.0",
     "es-jest": "^2.1.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^28.1.0",
-    "jest-snapshot": "^28.1.0"
+    "jest": "^27.5.1"
   },
   "jest": {
     "transform": {
