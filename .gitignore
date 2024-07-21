@@ -21,3 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+eval "$(ssh-agent -s)"
+eval "$(ssh-agent -s)".pub
