@@ -11,6 +11,12 @@ pipeline {
         K8S_CONTAINER_NAME = 'frontend-container' // Kubernetes 컨테이너 이름, 배포 후 입력
     }
     stages {
+        stage('Install Node.js') {
+                    steps {
+                        sh 'curl -sL https://deb.nodesource.com/setup_18.x | bash -'
+                        sh 'apt-get install -y nodejs'
+                    }
+                }
         stage('Checkout') {
             steps {
                 script {
