@@ -16,7 +16,6 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI = false react-scripts build",
     "build": "CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -49,7 +48,8 @@
     "babel-jest": "^29.7.0",
     "es-jest": "^2.1.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^27.5.1"
+    "jest": "^29.0.0",
+    "jest-snapshot": "^29.0.0"
   },
   "jest": {
     "transform": {
