@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        NODE_VERSION = '14'
+        NODE_VERSION = '18'
         REACT_APP_API_URL = 'http://localhost:3000/api' // 실제 배포 시에는 외부에서 접근 가능한 API로 변경
         VERSION = "${env.BUILD_NUMBER}"
         GITHUB_TOKEN = credentials('github-token')
@@ -12,19 +12,19 @@ pipeline {
     }
     stages {
          stage('Install Docker') {
-                     steps {
-                         sh '''
-                         if ! [ -x "$(command -v docker)" ]; then
-                           apt-get update
-                           apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-                           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-                           add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-                           apt-get update
-                           apt-get install -y docker-ce
-                         fi
-                         '''
-                     }
-                 }
+             steps {
+                 sh '''
+                 if ! [ -x "$(command -v docker)" ]; then
+                   apt-get update
+                   apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+                   curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+                   echo "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+                   apt-get update
+                   apt-get install -y docker-ce
+                 fi
+                 '''
+             }
+         }
         stage('Install Node.js') {
                     steps {
                         sh 'curl -sL https://deb.nodesource.com/setup_18.x | bash -'
