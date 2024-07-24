@@ -11,20 +11,17 @@ pipeline {
         K8S_CONTAINER_NAME = 'frontend-container' // Kubernetes 컨테이너 이름, 배포 후 입력
     }
     stages {
-         stage('Install Docker') {
-             steps {
-                 sh '''
-                 if ! [ -x "$(command -v docker)" ]; then
-                     apt-get update
-                     apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-                     curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-                     echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
-                     apt-get update
-                     apt-get install -y docker-ce
-                 fi
-                 '''
-             }
-         }
+        stage('Start Docker Daemon') {
+                steps {
+                    sh '''
+                    if ! pgrep -x "dockerd" > /dev/null
+                    then
+                        dockerd > /var/log/dockerd.log 2>&1 &
+                        sleep 10
+                    fi
+                    '''
+                }
+            }
         stage('Install Node.js') {
                     steps {
                         sh 'curl -sL https://deb.nodesource.com/setup_18.x | bash -'
