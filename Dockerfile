@@ -1,12 +1,12 @@
 # 빌드 단계
 FROM node:14-alpine as build
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json yarn.lock ./
+RUN yarn install
 COPY . .
 ARG REACT_APP_API_URL
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
-RUN npm run build
+RUN yarn build
 
 # 실행 단계
 FROM nginx:alpine
