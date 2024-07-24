@@ -1,7 +1,7 @@
 module.exports = {
     transform: {
-        "^.+\\.jsx?$": "babel-jest"
+        "^.+\\.[jt]sx?$": "babel-jest"
     },
-    moduleFileExtensions: ["js", "jsx"],
-    transformIgnorePatterns: ["<rootDir>/node_modules/"]
+    moduleFileExtensions: ["js", "jsx", "ts", "tsx"],
+    transformIgnorePatterns: ["/node_modules/(?!axios)"]
 };

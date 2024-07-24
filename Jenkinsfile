@@ -17,6 +17,11 @@ pipeline {
                         sh 'apt-get install -y nodejs'
                     }
                 }
+        stage('Install Yarn') {
+                    steps {
+                        sh 'npm install -g yarn'
+                    }
+                }
         stage('Checkout') {
             steps {
                 script {
@@ -35,21 +40,21 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 dir('cicd-frontend/frontend') {
-                    sh 'npm install'
+                    sh 'yarn install'
                 }
             }
         }
         stage('Test') {
             steps {
                 dir('cicd-frontend/frontend') {
-                    sh 'npm run test'
+                    sh 'yarn test'
                 }
             }
         }
         stage('Build') {
             steps {
                 dir('cicd-frontend/frontend') {
-                    sh 'npm run build'
+                    sh 'yarn build'
                 }
             }
         }
