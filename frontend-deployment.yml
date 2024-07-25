@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend-container
-          image: andrewjiwonkim/frontend-app:latest
+          image: andrewjiwonkim/frontend-app:${VERSION}
           ports:
             - containerPort: 80
 ---
