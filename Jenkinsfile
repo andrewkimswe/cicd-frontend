@@ -12,47 +12,47 @@ pipeline {
     }
     stages {
         stage('Start Docker Daemon') {
-                steps {
-                    sh '''
-                    if ! pgrep -x "dockerd" > /dev/null
-                    then
-                        dockerd > /var/log/dockerd.log 2>&1 &
-                        sleep 10
-                    fi
-                    '''
-                }
+            steps {
+                sh '''
+                if ! pgrep -x "dockerd" > /dev/null
+                then
+                    dockerd > /var/log/dockerd.log 2>&1 &
+                    sleep 10
+                fi
+                '''
             }
+        }
         stage('Install Node.js') {
-                    steps {
-                        sh 'curl -sL https://deb.nodesource.com/setup_18.x | bash -'
-                        sh 'apt-get install -y nodejs'
-                    }
-                }
+            steps {
+                sh 'curl -sL https://deb.nodesource.com/setup_18.x | bash -'
+                sh 'apt-get install -y nodejs'
+            }
+        }
         stage('Install Yarn') {
-                    steps {
-                        sh 'npm install -g yarn'
-                    }
-                }
+            steps {
+                sh 'npm install -g yarn'
+            }
+        }
         stage('Install kubectl') {
-                    steps {
-                        sh '''
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                        chmod +x kubectl
-                        mv kubectl /usr/local/bin/
-                        '''
-                    }
-                }
+            steps {
+                sh '''
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                chmod +x kubectl
+                mv kubectl /usr/local/bin/
+                '''
+            }
+        }
         stage('Checkout') {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                        sh """
+                        sh '''
                         if [ -d "cicd-frontend" ]; then
                             rm -rf cicd-frontend
                         fi
                         git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
                         git clone https://github.com/andrewkimswe/cicd-frontend.git
-                        """
+                        '''
                     }
                 }
             }
@@ -79,22 +79,29 @@ pipeline {
             }
         }
         stage('Docker Build and Push') {
-                    steps {
-                        script {
-                            def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}",
-                                "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/Dockerfile cicd-frontend")
-                            docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
-                                myApp.push()
-                                myApp.push('latest')
-                            }
-                        }
+            steps {
+                script {
+                    def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}",
+                        "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/Dockerfile cicd-frontend")
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
+                        myApp.push()
+                        myApp.push('latest')
                     }
                 }
+            }
+        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh "kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION}"
-                    sh "kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME}"
+                    withCredentials([string(credentialsId: 'kubeconfig-credentials-id', variable: 'KUBECONFIG_CONTENT')]) {
+                        sh '''
+                        echo "$KUBECONFIG_CONTENT" > kubeconfig
+                        export KUBECONFIG=kubeconfig
+                        kubectl apply -f cicd-frontend/frontend/frontend-deployment.yml
+                        kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION}
+                        kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME}
+                        '''
+                    }
                 }
             }
         }
@@ -102,7 +109,13 @@ pipeline {
     post {
         failure {
             script {
-                sh "kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}"
+                withCredentials([string(credentialsId: 'kubeconfig-credentials-id', variable: 'KUBECONFIG_CONTENT')]) {
+                    sh '''
+                    echo "$KUBECONFIG_CONTENT" > kubeconfig
+                    export KUBECONFIG=kubeconfig
+                    kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}
+                    '''
+                }
             }
         }
     }
