@@ -95,9 +95,19 @@ pipeline {
                 script {
                     withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
                         sh '''
-                        kubectl apply -f cicd-frontend/frontend-deployment.yml
-                        kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION}
-                        kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME}
+                        export KUBECONFIG=$KUBECONFIG
+                        echo "Using KUBECONFIG: $KUBECONFIG"
+
+                        echo "Applying deployment configuration..."
+                        kubectl apply -f cicd-frontend/frontend-deployment.yml || { echo "Deployment failed"; exit 1; }
+
+                        echo "Updating container image..."
+                        kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} || { echo "Image update failed"; exit 1; }
+
+                        echo "Checking rollout status..."
+                        kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME} || { echo "Rollout failed"; exit 1; }
+
+                        echo "Deployment completed successfully"
                         '''
                     }
                 }
