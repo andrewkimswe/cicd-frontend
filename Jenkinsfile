@@ -59,21 +59,21 @@ pipeline {
         }
         stage('Install dependencies') {
             steps {
-                dir('cicd-frontend/frontend') {
+                dir('cicd-frontend') {
                     sh 'yarn install'
                 }
             }
         }
         stage('Test') {
             steps {
-                dir('cicd-frontend/frontend') {
+                dir('cicd-frontend') {
                     sh 'yarn test'
                 }
             }
         }
         stage('Build') {
             steps {
-                dir('cicd-frontend/frontend') {
+                dir('cicd-frontend') {
                     sh 'yarn build'
                 }
             }
