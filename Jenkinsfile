@@ -107,7 +107,7 @@ pipeline {
     post {
         failure {
             script {
-                withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {    sh '''
+                withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
                     kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}
