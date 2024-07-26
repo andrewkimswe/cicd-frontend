@@ -95,8 +95,6 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'kubeconfig-credentials-id', variable: 'KUBECONFIG_CONTENT')]) {
                         sh '''
-                        echo "$KUBECONFIG_CONTENT" > kubeconfig
-                        export KUBECONFIG=kubeconfig
                         kubectl apply -f cicd-frontend/frontend/frontend-deployment.yml
                         kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION}
                         kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME}
@@ -111,8 +109,6 @@ pipeline {
             script {
                 withCredentials([string(credentialsId: 'kubeconfig-credentials-id', variable: 'KUBECONFIG_CONTENT')]) {
                     sh '''
-                    echo "$KUBECONFIG_CONTENT" > kubeconfig
-                    export KUBECONFIG=kubeconfig
                     kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}
                     '''
                 }
