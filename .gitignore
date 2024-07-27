@@ -24,3 +24,5 @@ yarn-error.log*
 
 eval "$(ssh-agent -s)"
 eval "$(ssh-agent -s)".pub
+
+aws-auth-configmap.yaml

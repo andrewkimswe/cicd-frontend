@@ -78,18 +78,6 @@ pipeline {
                 }
             }
         }
-        stage('Docker Build and Push') {
-            steps {
-                script {
-                    def myApp = docker.build("${DOCKERHUB_USERNAME}/frontend-app:${VERSION}",
-                        "--build-arg REACT_APP_API_URL=${REACT_APP_API_URL} -f cicd-frontend/Dockerfile cicd-frontend")
-                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS_ID) {
-                        myApp.push()
-                        myApp.push('latest')
-                    }
-                }
-            }
-        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
@@ -99,6 +87,7 @@ pipeline {
                         echo "Using KUBECONFIG: $KUBECONFIG"
 
                         echo "Applying deployment configuration..."
+                        cat cicd-frontend/frontend-deployment.yml
                         kubectl apply -f cicd-frontend/frontend-deployment.yml || { echo "Deployment failed"; exit 1; }
 
                         echo "Updating container image..."
