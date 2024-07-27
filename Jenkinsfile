@@ -9,6 +9,8 @@ pipeline {
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-credentials' // DockerHub 자격 증명 ID
         K8S_DEPLOYMENT_NAME = 'frontend-deployment' // Kubernetes 배포 이름, 배포 후 입력
         K8S_CONTAINER_NAME = 'frontend-container' // Kubernetes 컨테이너 이름, 배포 후 입력
+        AWS_REGION = 'eu-north-1'  // AWS 리전 설정
+        CLUSTER_NAME = 'my-cluster'  // 클러스터 이름 설정
     }
     stages {
         stage('Start Docker Daemon') {
@@ -90,14 +92,31 @@ pipeline {
                 }
             }
         }
+        stage('Configure AWS CLI') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
+                    credentialsId: 'aws-credentials'
+                ]]) {
+                    sh '''
+                    aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+                    '''
+                }
+            }
+        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
-                        dir('cicd-frontend') {
+                    dir('cicd-frontend') {
+                        withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
                             sh '''
-                            export KUBECONFIG=$KUBECONFIG
-                            echo "Using KUBECONFIG: $KUBECONFIG"
+                            export KUBECONFIG=${KUBECONFIG}
+                            echo "Using KUBECONFIG: ${KUBECONFIG}"
+
+                            # 환경 변수 치환
+                            sed -i "s/\\${VERSION}/${VERSION}/g" frontend-deployment.yml
 
                             echo "Applying deployment configuration..."
                             cat frontend-deployment.yml
