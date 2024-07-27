@@ -92,13 +92,13 @@ pipeline {
                 }
             }
         }
-        stage('Configure AWS CLI') {
+         stage('Configure AWS CLI') {
             steps {
                 withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
-                    credentialsId: 'aws-credentials'
+                    $class: 'UsernamePasswordMultiBinding',
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     sh '''
                     aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
