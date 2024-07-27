@@ -94,22 +94,24 @@ pipeline {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
-                        sh '''
-                        export KUBECONFIG=$KUBECONFIG
-                        echo "Using KUBECONFIG: $KUBECONFIG"
+                        dir('cicd-frontend') {
+                            sh '''
+                            export KUBECONFIG=$KUBECONFIG
+                            echo "Using KUBECONFIG: $KUBECONFIG"
 
-                        echo "Applying deployment configuration..."
-                        cat cicd-frontend/frontend-deployment.yml
-                        kubectl apply -f cicd-frontend/frontend-deployment.yml || { echo "Deployment failed"; exit 1; }
+                            echo "Applying deployment configuration..."
+                            cat frontend-deployment.yml
+                            kubectl apply --dry-run=client -f frontend-deployment.yml || { echo "Deployment failed"; exit 1; }
 
-                        echo "Updating container image..."
-                        kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} || { echo "Image update failed"; exit 1; }
+                            echo "Updating container image..."
+                            kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} || { echo "Image update failed"; exit 1; }
 
-                        echo "Checking rollout status..."
-                        kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME} || { echo "Rollout failed"; exit 1; }
+                            echo "Checking rollout status..."
+                            kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME} || { echo "Rollout failed"; exit 1; }
 
-                        echo "Deployment completed successfully"
-                        '''
+                            echo "Deployment completed successfully"
+                            '''
+                        }
                     }
                 }
             }
