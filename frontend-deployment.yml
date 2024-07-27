@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: frontend-container
-          image: your-dockerhub-username/frontend-app:${VERSION}
+          image: andrewjiwonkijm/frontend-app:${VERSION}
           ports:
             - containerPort: 80
