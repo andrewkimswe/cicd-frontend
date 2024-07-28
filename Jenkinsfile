@@ -34,32 +34,63 @@ pipeline {
                 '''
             }
         }
-        stage('Install kubectl and gcloud') {
+        stage('Debug GCP and kubectl') {
             steps {
-                withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh '''
-                    # Install kubectl
-                    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    chmod +x kubectl
-                    mv kubectl /usr/local/bin/
+                sh '''
+                echo "Debugging GCP and kubectl configuration"
+                echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+                echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
+                echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
+                echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
 
-                    # Install gcloud CLI
-                    curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
-                    tar -xf google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
-                    ./google-cloud-sdk/install.sh -q
-                    '''
-                }
-                sh '''#!/bin/bash
-                # Source the path.bash.inc script to update PATH
-                . ./google-cloud-sdk/path.bash.inc
+                gcloud version
+                gcloud config list
+                gcloud auth list
 
-                # Authenticate with service account
-                gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-                gcloud config set project ${GCP_PROJECT_ID}
-                gcloud config set compute/zone ${GCP_COMPUTE_ZONE}
-                gcloud container clusters get-credentials ${GCP_CLUSTER_NAME}
+                kubectl version --client
+
+                echo "Attempting to get cluster info"
+                gcloud container clusters list --project $GCP_PROJECT_ID
+
+                echo "Attempting to get cluster credentials"
+                gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID
+
+                echo "Checking kubectl configuration"
+                kubectl config view
+
+                echo "Checking cluster access"
+                kubectl get nodes
                 '''
             }
+        }
+        stage('Debug GCP and kubectl') {
+             steps {
+                 sh '''
+                 echo "Debugging GCP and kubectl configuration"
+                 echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+                 echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
+                 echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
+                 echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
+
+                 gcloud version
+                 gcloud config list
+                 gcloud auth list
+
+                 kubectl version --client
+
+                 echo "Attempting to get cluster info"
+                 gcloud container clusters list --project $GCP_PROJECT_ID
+
+                 echo "Attempting to get cluster credentials"
+                 gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID
+
+                 echo "Checking kubectl configuration"
+                 kubectl config view
+
+                 echo "Checking cluster access"
+                 kubectl get nodes
+                 '''
+             }
         }
         stage('Checkout') {
             steps {
