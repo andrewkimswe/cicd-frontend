@@ -41,7 +41,11 @@ pipeline {
                 if ! command -v gcloud &> /dev/null; then
                     echo "gcloud CLI not found. Installing..."
                     curl -sSL https://sdk.cloud.google.com | bash
-                    exec -l $SHELL
+                    # Source the completion and path
+                    echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
+                    echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
+                    source /root/google-cloud-sdk/path.bash.inc
+                    source /root/google-cloud-sdk/completion.bash.inc
                     gcloud components install kubectl
                     gcloud components update
                 else
