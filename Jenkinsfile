@@ -93,19 +93,17 @@ pipeline {
             }
         }
          stage('Configure AWS CLI') {
-            steps {
-                withCredentials([[
-                    $class: 'UsernamePasswordMultiBinding',
-                    credentialsId: 'aws-credentials',
-                    usernameVariable: 'AWS_ACCESS_KEY_ID',
-                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh '''
-                    aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
-                    '''
-                }
-            }
-        }
+             steps {
+                 withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                     sh '''
+                     aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+                     aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+                     aws configure set region ${AWS_REGION}
+                     aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+                     '''
+                 }
+             }
+         }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
