@@ -9,7 +9,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-credentials'
         K8S_DEPLOYMENT_NAME = 'frontend-deployment'
         K8S_CONTAINER_NAME = 'frontend-container'
-        GCP_PROJECT_ID = 'elite-variety-430807-n0'
+        GCP_PROJECT_ID = 'elite-variety-430807'
         GCP_CLUSTER_NAME = 'gke-cluster'
         GCP_COMPUTE_ZONE = 'us-central1-a'
         GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account-key')
@@ -36,17 +36,22 @@ pipeline {
         }
         stage('Install kubectl and gcloud') {
             steps {
-                sh '''
-                # Install kubectl
-                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                chmod +x kubectl
-                mv kubectl /usr/local/bin/
+                withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                    # Install kubectl
+                    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                    chmod +x kubectl
+                    mv kubectl /usr/local/bin/
 
-                # Install gcloud CLI
-                curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
-                tar -xf google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
-                ./google-cloud-sdk/install.sh -q
-                source ./google-cloud-sdk/path.bash.inc
+                    # Install gcloud CLI
+                    curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
+                    tar -xf google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
+                    ./google-cloud-sdk/install.sh -q
+                    '''
+                }
+                sh '''#!/bin/bash
+                # Source the path.bash.inc script to update PATH
+                . ./google-cloud-sdk/path.bash.inc
 
                 # Authenticate with service account
                 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
