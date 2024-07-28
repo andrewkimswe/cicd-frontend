@@ -34,6 +34,22 @@ pipeline {
                 '''
             }
         }
+        stage('Install gcloud CLI') {
+            steps {
+                sh '''
+                # Install gcloud CLI
+                if ! command -v gcloud &> /dev/null; then
+                    echo "gcloud CLI not found. Installing..."
+                    curl -sSL https://sdk.cloud.google.com | bash
+                    exec -l $SHELL
+                    gcloud components install kubectl
+                    gcloud components update
+                else
+                    echo "gcloud CLI is already installed."
+                fi
+                '''
+            }
+        }
         stage('Debug GCP and kubectl') {
             steps {
                 sh '''
