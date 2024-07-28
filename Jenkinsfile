@@ -63,35 +63,6 @@ pipeline {
                 '''
             }
         }
-        stage('Debug GCP and kubectl') {
-             steps {
-                 sh '''
-                 echo "Debugging GCP and kubectl configuration"
-                 echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
-                 echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
-                 echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
-                 echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
-
-                 gcloud version
-                 gcloud config list
-                 gcloud auth list
-
-                 kubectl version --client
-
-                 echo "Attempting to get cluster info"
-                 gcloud container clusters list --project $GCP_PROJECT_ID
-
-                 echo "Attempting to get cluster credentials"
-                 gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID
-
-                 echo "Checking kubectl configuration"
-                 kubectl config view
-
-                 echo "Checking cluster access"
-                 kubectl get nodes
-                 '''
-             }
-        }
         stage('Checkout') {
             steps {
                 script {
