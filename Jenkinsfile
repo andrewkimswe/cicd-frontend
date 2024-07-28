@@ -108,7 +108,7 @@ pipeline {
             steps {
                 script {
                     dir('cicd-frontend') {
-                        withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+                        withCredentials([file(credentialsId: 'k8s-ca-cert', variable: 'CA_CERT')]) {
                             sh '''
                             export KUBECONFIG=${KUBECONFIG}
                             echo "Using KUBECONFIG: ${KUBECONFIG}"
@@ -118,7 +118,7 @@ pipeline {
 
                             echo "Applying deployment configuration..."
                             cat frontend-deployment.yml
-                            kubectl apply --dry-run=client -f frontend-deployment.yml || { echo "Deployment failed"; exit 1; }
+                            kubectl apply --dry-run=client -f frontend-deployment.yml --certificate-authority=${CA_CERT} || { echo "Deployment failed"; exit 1; }
 
                             echo "Updating container image..."
                             kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} || { echo "Image update failed"; exit 1; }
