@@ -33,6 +33,15 @@ pipeline {
                 '''
             }
         }
+        stage('Install AWS CLI v2') {
+            steps {
+                sh '''
+                curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+                sudo installer -pkg AWSCLIV2.pkg -target /
+                rm AWSCLIV2.pkg
+                '''
+            }
+        }
         stage('Install kubectl') {
             steps {
                 sh '''
@@ -99,7 +108,6 @@ pipeline {
                     aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
                     aws configure set region ${AWS_REGION}
                     aws sts get-caller-identity
-                    aws eks describe-cluster --name ${CLUSTER_NAME}
                     aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${AWS_REGION}
                     kubectl config view --raw
                     kubectl cluster-info
