@@ -108,23 +108,37 @@ pipeline {
             steps {
                 script {
                     dir('cicd-frontend') {
-                        withCredentials([file(credentialsId: 'k8s-ca-cert', variable: 'CA_CERT')]) {
+                        withCredentials([
+                            usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                        ]) {
                             sh '''
-                            export KUBECONFIG=~/.kube/config
-                            echo "Using KUBECONFIG: $KUBECONFIG"
+                            # AWS CLI 구성
+                            aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+                            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+                            aws configure set region ${AWS_REGION}
+
+                            # EKS 클러스터에 대한 kubeconfig 업데이트
+                            aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+
+                            # kubectl 구성 확인
+                            kubectl config view
+                            kubectl cluster-info
 
                             # 환경 변수 치환
                             sed -i "s/\\${VERSION}/${VERSION}/g" frontend-deployment.yml
 
                             echo "Applying deployment configuration..."
                             cat frontend-deployment.yml
-                            kubectl apply --dry-run=client -f frontend-deployment.yml --certificate-authority=$CA_CERT || { echo "Deployment failed"; exit 1; }
+
+                            # 토큰 기반 인증을 사용하여 배포
+                            TOKEN=$(aws eks get-token --cluster-name ${CLUSTER_NAME} | jq -r '.status.token')
+                            kubectl apply -f frontend-deployment.yml --token=$TOKEN
 
                             echo "Updating container image..."
-                            kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} || { echo "Image update failed"; exit 1; }
+                            kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} --token=$TOKEN
 
                             echo "Checking rollout status..."
-                            kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME} || { echo "Rollout failed"; exit 1; }
+                            kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME} --token=$TOKEN
 
                             echo "Deployment completed successfully"
                             '''
@@ -137,10 +151,23 @@ pipeline {
     post {
         failure {
             script {
-                withCredentials([file(credentialsId: 'k8s-ca-cert', variable: 'CA_CERT')]) {
+                withCredentials([
+                    usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
                     sh '''
-                    export KUBECONFIG=~/.kube/config
-                    kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}
+                    # AWS CLI 구성
+                    aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+                    aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+                    aws configure set region ${AWS_REGION}
+
+                    # EKS 클러스터에 대한 kubeconfig 업데이트
+                    aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+
+                    # 토큰 기반 인증을 사용하여 롤백
+                    TOKEN=$(aws eks get-token --cluster-name ${CLUSTER_NAME} | jq -r '.status.token')
+                    kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME} --token=$TOKEN
+
+                    echo "Deployment rolled back due to failure"
                     '''
                 }
             }
