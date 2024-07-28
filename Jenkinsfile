@@ -110,15 +110,15 @@ pipeline {
                     dir('cicd-frontend') {
                         withCredentials([file(credentialsId: 'k8s-ca-cert', variable: 'CA_CERT')]) {
                             sh '''
-                            export KUBECONFIG=${KUBECONFIG}
-                            echo "Using KUBECONFIG: ${KUBECONFIG}"
+                            export KUBECONFIG=~/.kube/config
+                            echo "Using KUBECONFIG: $KUBECONFIG"
 
                             # 환경 변수 치환
                             sed -i "s/\\${VERSION}/${VERSION}/g" frontend-deployment.yml
 
                             echo "Applying deployment configuration..."
                             cat frontend-deployment.yml
-                            kubectl apply --dry-run=client -f frontend-deployment.yml --certificate-authority=${CA_CERT} || { echo "Deployment failed"; exit 1; }
+                            kubectl apply --dry-run=client -f frontend-deployment.yml --certificate-authority=$CA_CERT || { echo "Deployment failed"; exit 1; }
 
                             echo "Updating container image..."
                             kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} || { echo "Image update failed"; exit 1; }
@@ -137,9 +137,9 @@ pipeline {
     post {
         failure {
             script {
-                withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'k8s-ca-cert', variable: 'CA_CERT')]) {
                     sh '''
-                    export KUBECONFIG=$KUBECONFIG
+                    export KUBECONFIG=~/.kube/config
                     kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}
                     '''
                 }
