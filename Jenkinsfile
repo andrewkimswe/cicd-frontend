@@ -36,9 +36,10 @@ pipeline {
         stage('Install AWS CLI v2') {
             steps {
                 sh '''
-                curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-                sudo installer -pkg AWSCLIV2.pkg -target /
-                rm AWSCLIV2.pkg
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                unzip awscliv2.zip
+                ./aws/install
+                rm -rf awscliv2.zip aws
                 '''
             }
         }
