@@ -9,9 +9,10 @@ pipeline {
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-credentials'
         K8S_DEPLOYMENT_NAME = 'frontend-deployment'
         K8S_CONTAINER_NAME = 'frontend-container'
-        AWS_REGION = 'eu-north-1'
-        CLUSTER_NAME = 'my-cluster'
-        AWS_CREDENTIALS_ID = 'aws-credentials'
+        GCP_PROJECT_ID = 'elite-variety-430807-n0'
+        GCP_CLUSTER_NAME = 'gke-cluster'
+        GCP_COMPUTE_ZONE = 'us-central1-a'
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account-key')
     }
     stages {
         stage('Start Docker Daemon') {
@@ -33,22 +34,25 @@ pipeline {
                 '''
             }
         }
-        stage('Install AWS CLI v2') {
+        stage('Install kubectl and gcloud') {
             steps {
                 sh '''
-                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                unzip awscliv2.zip
-                ./aws/install
-                rm -rf awscliv2.zip aws
-                '''
-            }
-        }
-        stage('Install kubectl') {
-            steps {
-                sh '''
+                # Install kubectl
                 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                 chmod +x kubectl
                 mv kubectl /usr/local/bin/
+
+                # Install gcloud CLI
+                curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
+                tar -xf google-cloud-sdk-367.0.0-linux-x86_64.tar.gz
+                ./google-cloud-sdk/install.sh -q
+                source ./google-cloud-sdk/path.bash.inc
+
+                # Authenticate with service account
+                gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                gcloud config set project ${GCP_PROJECT_ID}
+                gcloud config set compute/zone ${GCP_COMPUTE_ZONE}
+                gcloud container clusters get-credentials ${GCP_CLUSTER_NAME}
                 '''
             }
         }
@@ -101,50 +105,25 @@ pipeline {
                 }
             }
         }
-        stage('Configure AWS and Kubectl') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh '''
-                    aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
-                    aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
-                    aws configure set region ${AWS_REGION}
-                    aws sts get-caller-identity
-                    aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${AWS_REGION}
-                    kubectl config view --raw
-                    kubectl cluster-info
-                    '''
-                }
-            }
-        }
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    dir('cicd-frontend') {
-                        sh '''
-                        sed -i "s/\\${VERSION}/${VERSION}/g" frontend-deployment.yml
-                        echo "Applying deployment configuration..."
-                        cat frontend-deployment.yml
-                        kubectl apply -f frontend-deployment.yml
-                        kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION}
-                        kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME}
-                        '''
-                    }
+                script {
+                    sh '''
+                    kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} --record
+                    '''
                 }
             }
         }
     }
     post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
         failure {
-           withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                sh '''
-                aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
-                aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
-                aws configure set region ${AWS_REGION}
-                aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${AWS_REGION}
-                kubectl rollout undo deployment/${K8S_DEPLOYMENT_NAME}
-                echo "Deployment rolled back due to failure"
-                '''
-            }
+            echo 'Pipeline failed.'
+        }
+        always {
+            cleanWs()
         }
     }
 }
