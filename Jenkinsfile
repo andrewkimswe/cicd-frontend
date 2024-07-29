@@ -44,11 +44,10 @@ pipeline {
                         rm -rf /root/google-cloud-sdk
                     fi
                     curl -sSL https://sdk.cloud.google.com | bash
-                    # Source the completion and path
-                    echo '. /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
-                    echo '. /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
-                    . /root/google-cloud-sdk/path.bash.inc
-                    . /root/google-cloud-sdk/completion.bash.inc
+                    echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
+                    echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
+                    bash -c "source /root/google-cloud-sdk/path.bash.inc"
+                    bash -c "source /root/google-cloud-sdk/completion.bash.inc"
                     gcloud components install kubectl
                     gcloud components update
                 else
