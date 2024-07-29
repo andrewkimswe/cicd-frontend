@@ -40,6 +40,9 @@ pipeline {
                 # Install gcloud CLI
                 if ! command -v gcloud &> /dev/null; then
                     echo "gcloud CLI not found. Installing..."
+                    if [ -d "/root/google-cloud-sdk" ]; then
+                        rm -rf /root/google-cloud-sdk
+                    fi
                     curl -sSL https://sdk.cloud.google.com | bash
                     # Source the completion and path
                     echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
