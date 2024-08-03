@@ -37,6 +37,7 @@ pipeline {
         stage('Install gcloud CLI') {
             steps {
                 sh '''
+                #!/bin/bash
                 if ! command -v gcloud &> /dev/null; then
                     echo "gcloud CLI not found. Installing..."
                     if [ -d "/root/google-cloud-sdk" ]; then
@@ -45,8 +46,8 @@ pipeline {
                     curl -sSL https://sdk.cloud.google.com | bash
                     echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
                     echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
-                    bash -c "source /root/google-cloud-sdk/path.bash.inc"
-                    bash -c "source /root/google-cloud-sdk/completion.bash.inc"
+                    . /root/google-cloud-sdk/path.bash.inc
+                    . /root/google-cloud-sdk/completion.bash.inc
                     gcloud components install kubectl
                     gcloud components update
                 else
@@ -58,29 +59,30 @@ pipeline {
         stage('Debug GCP and kubectl') {
             steps {
                 sh '''
+                #!/bin/bash
                 echo "Debugging GCP and kubectl configuration"
                 echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
                 echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
                 echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
                 echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
 
-                bash -c "gcloud version"
-                bash -c "gcloud config list"
-                bash -c "gcloud auth list"
+                gcloud version
+                gcloud config list
+                gcloud auth list
 
-                bash -c "kubectl version --client"
+                kubectl version --client
 
                 echo "Attempting to get cluster info"
-                bash -c "gcloud container clusters list --project $GCP_PROJECT_ID"
+                gcloud container clusters list --project $GCP_PROJECT_ID
 
                 echo "Attempting to get cluster credentials"
-                bash -c "gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID"
+                gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID
 
                 echo "Checking kubectl configuration"
-                bash -c "kubectl config view"
+                kubectl config view
 
                 echo "Checking cluster access"
-                bash -c "kubectl get nodes"
+                kubectl get nodes
                 '''
             }
         }
@@ -89,6 +91,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                         sh '''
+                        #!/bin/bash
                         if [ -d "cicd-frontend" ]; then
                             rm -rf cicd-frontend
                         fi
@@ -103,6 +106,7 @@ pipeline {
             steps {
                 dir('cicd-frontend') {
                     sh '''
+                    #!/bin/bash
                     yarn install
                     '''
                 }
@@ -112,6 +116,7 @@ pipeline {
             steps {
                 dir('cicd-frontend') {
                     sh '''
+                    #!/bin/bash
                     yarn test -- --outputFile=./test-results.xml
                     '''
                     junit 'cicd-frontend/test-results.xml'
@@ -122,6 +127,7 @@ pipeline {
             steps {
                 dir('cicd-frontend') {
                     sh '''
+                    #!/bin/bash
                     yarn build
                     '''
                 }
@@ -143,6 +149,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    #!/bin/bash
                     kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} --record
                     '''
                 }
