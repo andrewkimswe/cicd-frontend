@@ -37,6 +37,7 @@ pipeline {
         stage('Install gcloud CLI') {
             steps {
                 sh '''
+                #!/bin/bash
                 # Install gcloud CLI
                 if ! command -v gcloud &> /dev/null; then
                     echo "gcloud CLI not found. Installing..."
@@ -46,8 +47,8 @@ pipeline {
                     curl -sSL https://sdk.cloud.google.com | bash
                     echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
                     echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
-                    . /root/google-cloud-sdk/path.bash.inc
-                    . /root/google-cloud-sdk/completion.bash.inc
+                    source /root/google-cloud-sdk/path.bash.inc
+                    source /root/google-cloud-sdk/completion.bash.inc
                     gcloud components install kubectl
                     gcloud components update
                 else
@@ -59,6 +60,7 @@ pipeline {
         stage('Debug GCP and kubectl') {
             steps {
                 sh '''
+                #!/bin/bash
                 echo "Debugging GCP and kubectl configuration"
                 echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
                 echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
@@ -90,6 +92,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                         sh '''
+                        #!/bin/bash
                         if [ -d "cicd-frontend" ]; then
                             rm -rf cicd-frontend
                         fi
@@ -103,14 +106,20 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'yarn install'
+                    sh '''
+                    #!/bin/bash
+                    yarn install
+                    '''
                 }
             }
         }
         stage('Test') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'yarn test -- --outputFile=./test-results.xml'
+                    sh '''
+                    #!/bin/bash
+                    yarn test -- --outputFile=./test-results.xml
+                    '''
                     junit 'cicd-frontend/test-results.xml'
                 }
             }
@@ -118,7 +127,10 @@ pipeline {
         stage('Build') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'yarn build'
+                    sh '''
+                    #!/bin/bash
+                    yarn build
+                    '''
                 }
             }
         }
@@ -138,6 +150,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    #!/bin/bash
                     kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} --record
                     '''
                 }
