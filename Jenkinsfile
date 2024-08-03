@@ -38,7 +38,6 @@ pipeline {
             steps {
                 sh '''
                 #!/bin/bash
-                # Install gcloud CLI
                 if ! command -v gcloud &> /dev/null; then
                     echo "gcloud CLI not found. Installing..."
                     if [ -d "/root/google-cloud-sdk" ]; then
