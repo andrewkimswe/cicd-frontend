@@ -17,79 +17,71 @@ pipeline {
     stages {
         stage('Start Docker Daemon') {
             steps {
-                script {
-                    sh '''
-                    if ! pgrep -x "dockerd" > /dev/null; then
-                        dockerd > /var/log/dockerd.log 2>&1 &
-                        sleep 10
-                    fi
-                    '''
-                }
+                sh '''
+                if ! pgrep -x "dockerd" > /dev/null; then
+                    dockerd > /var/log/dockerd.log 2>&1 &
+                    sleep 10
+                fi
+                '''
             }
         }
         stage('Install Node.js and Yarn') {
             steps {
-                script {
-                    sh '''
-                    curl -sL https://deb.nodesource.com/setup_18.x | bash -
-                    apt-get update && apt-get install -y nodejs
-                    npm install -g yarn
-                    '''
-                }
+                sh '''
+                curl -sL https://deb.nodesource.com/setup_18.x | bash -
+                apt-get update && apt-get install -y nodejs
+                npm install -g yarn
+                '''
             }
         }
         stage('Install gcloud CLI') {
             steps {
-                script {
-                    sh '''
-                    if ! command -v gcloud &> /dev/null; then
-                        echo "gcloud CLI not found. Installing..."
-                        if [ -d "/root/google-cloud-sdk" ]; then
-                            rm -rf /root/google-cloud-sdk
-                        fi
-                        curl -sSL https://sdk.cloud.google.com | bash
-                        echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
-                        echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
-                        . /root/google-cloud-sdk/path.bash.inc
-                        . /root/google-cloud-sdk/completion.bash.inc
-                        gcloud components install kubectl
-                        gcloud components update
-                    else
-                        echo "gcloud CLI is already installed."
+                sh '''
+                if ! command -v gcloud &> /dev/null; then
+                    echo "gcloud CLI not found. Installing..."
+                    if [ -d "/root/google-cloud-sdk" ]; then
+                        rm -rf /root/google-cloud-sdk
                     fi
-                    '''
-                }
+                    curl -sSL https://sdk.cloud.google.com | bash
+                    echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
+                    echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
+                    . /root/google-cloud-sdk/path.bash.inc
+                    . /root/google-cloud-sdk/completion.bash.inc
+                    bash -c "gcloud components install kubectl"
+                    bash -c "gcloud components update"
+                else
+                    echo "gcloud CLI is already installed."
+                fi
+                '''
             }
         }
         stage('Debug GCP and kubectl') {
             steps {
-                script {
-                    sh '''
-                    echo "Debugging GCP and kubectl configuration"
-                    echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
-                    echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
-                    echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
-                    echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
+                sh '''
+                echo "Debugging GCP and kubectl configuration"
+                echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+                echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
+                echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
+                echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
 
-                    gcloud version
-                    gcloud config list
-                    gcloud auth list
+                bash -c "gcloud version"
+                bash -c "gcloud config list"
+                bash -c "gcloud auth list"
 
-                    kubectl version --client
+                bash -c "kubectl version --client"
 
-                    echo "Attempting to get cluster info"
-                    gcloud container clusters list --project $GCP_PROJECT_ID
+                echo "Attempting to get cluster info"
+                bash -c "gcloud container clusters list --project $GCP_PROJECT_ID"
 
-                    echo "Attempting to get cluster credentials"
-                    gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID
+                echo "Attempting to get cluster credentials"
+                bash -c "gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID"
 
-                    echo "Checking kubectl configuration"
-                    kubectl config view
+                echo "Checking kubectl configuration"
+                bash -c "kubectl config view"
 
-                    echo "Checking cluster access"
-                    kubectl get nodes
-                    '''
-                }
+                echo "Checking cluster access"
+                bash -c "kubectl get nodes"
+                '''
             }
         }
         stage('Checkout') {
@@ -110,18 +102,18 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 dir('cicd-frontend') {
-                    script {
-                        sh 'yarn install'
-                    }
+                    sh '''
+                    yarn install
+                    '''
                 }
             }
         }
         stage('Test') {
             steps {
                 dir('cicd-frontend') {
-                    script {
-                        sh 'yarn test -- --outputFile=./test-results.xml'
-                    }
+                    sh '''
+                    yarn test -- --outputFile=./test-results.xml
+                    '''
                     junit 'cicd-frontend/test-results.xml'
                 }
             }
@@ -129,9 +121,9 @@ pipeline {
         stage('Build') {
             steps {
                 dir('cicd-frontend') {
-                    script {
-                        sh 'yarn build'
-                    }
+                    sh '''
+                    yarn build
+                    '''
                 }
             }
         }
