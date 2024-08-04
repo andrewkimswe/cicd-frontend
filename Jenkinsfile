@@ -9,9 +9,10 @@ pipeline {
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-credentials'
         K8S_DEPLOYMENT_NAME = 'frontend-deployment'
         K8S_CONTAINER_NAME = 'frontend-container'
-        DO_PAT = credentials('digitalocean-pat')  // Personal Access Token
-        DO_CLUSTER_NAME = 'my-do-cluster'
-        DO_REGION = 'nyc1'
+        GCP_PROJECT_ID = 'your-gcp-project-id'
+        GCP_CLUSTER_NAME = 'your-gcp-cluster-name'
+        GCP_COMPUTE_ZONE = 'us-central1-a'
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account-key')
     }
     stages {
         stage('Start Docker Daemon') {
@@ -33,31 +34,49 @@ pipeline {
                 '''
             }
         }
-        stage('Install doctl') {
+        stage('Install gcloud CLI') {
             steps {
                 sh '''
-                curl -sL https://github.com/digitalocean/doctl/releases/download/v1.64.0/doctl-1.64.0-linux-amd64.tar.gz | tar -xzv
-                sudo mv doctl /usr/local/bin
-                doctl version
+                if ! command -v gcloud &> /dev/null; then
+                    echo "gcloud CLI not found. Installing..."
+                    if [ -d "/root/google-cloud-sdk" ]; then
+                        rm -rf /root/google-cloud-sdk
+                    fi
+                    curl -sSL https://sdk.cloud.google.com | bash
+                    echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
+                    echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
+                    . /root/google-cloud-sdk/path.bash.inc
+                    . /root/google-cloud-sdk/completion.bash.inc
+                    gcloud components install kubectl
+                    gcloud components update
+                else
+                    echo "gcloud CLI is already installed."
+                fi
                 '''
             }
         }
-        stage('Configure doctl') {
+        stage('Configure gcloud') {
             steps {
                 sh '''
-                doctl auth init -t $DO_PAT
-                doctl kubernetes cluster kubeconfig save $DO_CLUSTER_NAME
+                gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                gcloud config set project $GCP_PROJECT_ID
+                gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE
                 '''
             }
         }
-        stage('Debug DigitalOcean and kubectl') {
+        stage('Debug GCP and kubectl') {
             steps {
                 sh '''
-                echo "Debugging DigitalOcean and kubectl configuration"
-                echo "DO_CLUSTER_NAME: $DO_CLUSTER_NAME"
-                echo "DO_REGION: $DO_REGION"
+                echo "Debugging GCP and kubectl configuration"
+                echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+                echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
+                echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
+                echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
 
-                doctl account get
+                gcloud version
+                gcloud config list
+                gcloud auth list
+
                 kubectl version --client
                 kubectl cluster-info
                 '''
