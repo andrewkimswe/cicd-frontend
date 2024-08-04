@@ -52,6 +52,7 @@ pipeline {
             steps {
                 sh '''
                 bash -c "
+                source /root/google-cloud-sdk/path.bash.inc
                 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
                 gcloud config set project $GCP_PROJECT_ID
                 gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE
@@ -63,6 +64,7 @@ pipeline {
             steps {
                 sh '''
                 bash -c "
+                source /root/google-cloud-sdk/path.bash.inc
                 echo Debugging GCP and kubectl configuration
                 echo GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
                 echo GCP_PROJECT_ID: $GCP_PROJECT_ID
