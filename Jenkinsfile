@@ -9,10 +9,9 @@ pipeline {
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-credentials'
         K8S_DEPLOYMENT_NAME = 'frontend-deployment'
         K8S_CONTAINER_NAME = 'frontend-container'
-        GCP_PROJECT_ID = 'elite-variety-430807-n0'
-        GCP_CLUSTER_NAME = 'gke-cluster'
-        GCP_COMPUTE_ZONE = 'us-central1-a'
-        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account-key')
+        DO_PAT = credentials('digitalocean-pat')  // Personal Access Token
+        DO_CLUSTER_NAME = 'my-do-cluster'
+        DO_REGION = 'nyc1'
     }
     stages {
         stage('Start Docker Daemon') {
@@ -34,53 +33,33 @@ pipeline {
                 '''
             }
         }
-        stage('Install gcloud CLI') {
+        stage('Install doctl') {
             steps {
                 sh '''
-                if ! command -v gcloud &> /dev/null; then
-                    echo "gcloud CLI not found. Installing..."
-                    if [ -d "/root/google-cloud-sdk" ]; then
-                        rm -rf /root/google-cloud-sdk
-                    fi
-                    curl -sSL https://sdk.cloud.google.com | bash
-                    echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
-                    echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
-                    . /root/google-cloud-sdk/path.bash.inc
-                    . /root/google-cloud-sdk/completion.bash.inc
-                    bash -c "gcloud components install kubectl"
-                    bash -c "gcloud components update"
-                else
-                    echo "gcloud CLI is already installed."
-                fi
+                curl -sL https://github.com/digitalocean/doctl/releases/download/v1.64.0/doctl-1.64.0-linux-amd64.tar.gz | tar -xzv
+                sudo mv doctl /usr/local/bin
+                doctl version
                 '''
             }
         }
-        stage('Debug GCP and kubectl') {
+        stage('Configure doctl') {
             steps {
                 sh '''
-                echo "Debugging GCP and kubectl configuration"
-                echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
-                echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
-                echo "GCP_CLUSTER_NAME: $GCP_CLUSTER_NAME"
-                echo "GCP_COMPUTE_ZONE: $GCP_COMPUTE_ZONE"
+                doctl auth init -t $DO_PAT
+                doctl kubernetes cluster kubeconfig save $DO_CLUSTER_NAME
+                '''
+            }
+        }
+        stage('Debug DigitalOcean and kubectl') {
+            steps {
+                sh '''
+                echo "Debugging DigitalOcean and kubectl configuration"
+                echo "DO_CLUSTER_NAME: $DO_CLUSTER_NAME"
+                echo "DO_REGION: $DO_REGION"
 
-                bash -c "gcloud version"
-                bash -c "gcloud config list"
-                bash -c "gcloud auth list"
-
-                bash -c "kubectl version --client"
-
-                echo "Attempting to get cluster info"
-                bash -c "gcloud container clusters list --project $GCP_PROJECT_ID"
-
-                echo "Attempting to get cluster credentials"
-                bash -c "gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE --project $GCP_PROJECT_ID"
-
-                echo "Checking kubectl configuration"
-                bash -c "kubectl config view"
-
-                echo "Checking cluster access"
-                bash -c "kubectl get nodes"
+                doctl account get
+                kubectl version --client
+                kubectl cluster-info
                 '''
             }
         }
@@ -102,18 +81,14 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 dir('cicd-frontend') {
-                    sh '''
-                    yarn install
-                    '''
+                    sh 'yarn install'
                 }
             }
         }
         stage('Test') {
             steps {
                 dir('cicd-frontend') {
-                    sh '''
-                    yarn test -- --outputFile=./test-results.xml
-                    '''
+                    sh 'yarn test -- --outputFile=./test-results.xml'
                     junit 'cicd-frontend/test-results.xml'
                 }
             }
@@ -121,9 +96,7 @@ pipeline {
         stage('Build') {
             steps {
                 dir('cicd-frontend') {
-                    sh '''
-                    yarn build
-                    '''
+                    sh 'yarn build'
                 }
             }
         }
