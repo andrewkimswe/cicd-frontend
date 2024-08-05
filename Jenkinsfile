@@ -17,18 +17,17 @@ pipeline {
     stages {
         stage('Start Docker Daemon') {
             steps {
-                sh 'bash -c "if ! pgrep -x dockerd > /dev/null; then dockerd > /var/log/dockerd.log 2>&1 & sleep 10; fi"'
+                sh 'if ! pgrep -x dockerd > /dev/null; then dockerd > /var/log/dockerd.log 2>&1 & sleep 10; fi'
             }
         }
         stage('Install Node.js and Yarn') {
             steps {
-                sh 'bash -c "curl -sL https://deb.nodesource.com/setup_18.x | bash -; apt-get update && apt-get install -y nodejs; npm install -g yarn"'
+                sh 'curl -sL https://deb.nodesource.com/setup_18.x | bash - && apt-get update && apt-get install -y nodejs && npm install -g yarn'
             }
         }
         stage('Install gcloud CLI') {
             steps {
                 sh '''
-                bash -c "
                 if ! command -v gcloud &> /dev/null; then
                     echo gcloud CLI not found. Installing...
                     if [ -d /root/google-cloud-sdk ]; then
@@ -44,26 +43,34 @@ pipeline {
                 else
                     echo gcloud CLI is already installed.
                 fi
-                "
+                '''
+            }
+        }
+        stage('Install gke-gcloud-auth-plugin') {
+            steps {
+                sh '''
+                if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
+                    echo gke-gcloud-auth-plugin not found. Installing...
+                    gcloud components install gke-gcloud-auth-plugin
+                else
+                    echo gke-gcloud-auth-plugin is already installed.
+                fi
                 '''
             }
         }
         stage('Configure gcloud') {
             steps {
                 sh '''
-                bash -c "
                 source /root/google-cloud-sdk/path.bash.inc
                 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
                 gcloud config set project $GCP_PROJECT_ID
                 gcloud container clusters get-credentials $GCP_CLUSTER_NAME --zone $GCP_COMPUTE_ZONE
-                "
                 '''
             }
         }
         stage('Debug GCP and kubectl') {
             steps {
                 sh '''
-                bash -c "
                 source /root/google-cloud-sdk/path.bash.inc
                 echo Debugging GCP and kubectl configuration
                 echo GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
@@ -77,7 +84,6 @@ pipeline {
 
                 kubectl version --client
                 kubectl cluster-info
-                "
                 '''
             }
         }
@@ -86,13 +92,11 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                         sh '''
-                        bash -c "
                         if [ -d cicd-frontend ]; then
                             rm -rf cicd-frontend
                         fi
                         git config --global url.https://${GITHUB_TOKEN}:x-oauth-basic@github.com/.insteadOf https://github.com/
                         git clone https://github.com/andrewkimswe/cicd-frontend.git
-                        "
                         '''
                     }
                 }
@@ -101,7 +105,7 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'bash -c "yarn install"'
+                    sh 'yarn install'
                 }
             }
         }
