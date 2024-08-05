@@ -11,7 +11,7 @@ pipeline {
         K8S_CONTAINER_NAME = 'frontend-container'
         GCP_PROJECT_ID = 'elite-variety-430807-n0'
         GCP_CLUSTER_NAME = 'gke-cluster'
-        GCP_COMPUTE_ZONE = 'us-central1-a'
+        GCP_COMPUTE_ZONE = 'us-central1'
         GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account-key')
     }
     stages {
