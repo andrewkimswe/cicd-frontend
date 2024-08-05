@@ -108,15 +108,14 @@ pipeline {
         stage('Test') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'bash -c "yarn test -- --outputFile=./test-results.xml"'
-                    junit 'cicd-frontend/test-results.xml'
+                    sh 'yarn test'
                 }
             }
         }
         stage('Build') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'bash -c "yarn build"'
+                    sh 'yarn build'
                 }
             }
         }
@@ -134,11 +133,9 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    sh '''
-                    bash -c "kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} --record"
-                    '''
-                }
+                sh '''
+                kubectl set image deployment/${K8S_DEPLOYMENT_NAME} ${K8S_CONTAINER_NAME}=${DOCKERHUB_USERNAME}/frontend-app:${VERSION} --record
+                '''
             }
         }
     }
