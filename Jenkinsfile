@@ -106,8 +106,6 @@ pipeline {
         stage('Test') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'bash -c "yarn test -- --outputFile=./test-results.xml"'
-                    junit 'cicd-frontend/test-results.xml'
                     sh 'yarn test'
                 }
             }
@@ -115,7 +113,6 @@ pipeline {
         stage('Build') {
             steps {
                 dir('cicd-frontend') {
-                    sh 'bash -c "yarn build"'
                     sh 'yarn build'
                 }
             }
