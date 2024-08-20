@@ -25,7 +25,7 @@ pipeline {
                 sh 'bash -c "curl -sL https://deb.nodesource.com/setup_18.x | bash -; apt-get update && apt-get install -y nodejs; npm install -g yarn"'
             }
         }
-        stage('Install gcloud CLI') {
+        stage('Install gcloud CLI and GKE Auth Plugin') {
             steps {
                 sh '''
                 bash -c "
@@ -39,10 +39,15 @@ pipeline {
                     echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
                     source /root/google-cloud-sdk/path.bash.inc
                     source /root/google-cloud-sdk/completion.bash.inc
-                    gcloud components install kubectl
-                    gcloud components update
                 else
                     echo gcloud CLI is already installed.
+                fi
+
+                if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
+                    echo gke-gcloud-auth-plugin not found. Installing...
+                    apt-get update && apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+                else
+                    echo gke-gcloud-auth-plugin is already installed.
                 fi
                 "
                 '''
