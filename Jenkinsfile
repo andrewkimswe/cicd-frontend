@@ -31,18 +31,16 @@ pipeline {
                 bash -c "
                 if ! command -v gcloud &> /dev/null; then
                     echo gcloud CLI not found. Installing...
-                    if [ -d /root/google-cloud-sdk ]; then
-                        rm -rf /root/google-cloud-sdk
-                    fi
                     curl -sSL https://sdk.cloud.google.com | bash
                     echo 'source /root/google-cloud-sdk/path.bash.inc' >> ~/.bashrc
                     echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc
                     source /root/google-cloud-sdk/path.bash.inc
                     source /root/google-cloud-sdk/completion.bash.inc
-                    gcloud components install kubectl
                 fi
+                gcloud components install kubectl
                 gcloud components install gke-gcloud-auth-plugin
                 gcloud components update
+                kubectl version --client
                 "
                 '''
             }
