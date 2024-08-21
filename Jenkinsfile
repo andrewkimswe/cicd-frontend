@@ -40,12 +40,9 @@ pipeline {
                     source /root/google-cloud-sdk/path.bash.inc
                     source /root/google-cloud-sdk/completion.bash.inc
                     gcloud components install kubectl
-                    gcloud components install gke-gcloud-auth-plugin
-                    gcloud components update
-                else
-                    echo gcloud CLI is already installed.
-                    gcloud components install gke-gcloud-auth-plugin
                 fi
+                gcloud components install gke-gcloud-auth-plugin
+                gcloud components update
                 "
                 '''
             }
