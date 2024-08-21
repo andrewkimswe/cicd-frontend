@@ -44,6 +44,7 @@ pipeline {
                     gcloud components update
                 else
                     echo gcloud CLI is already installed.
+                    gcloud components install gke-gcloud-auth-plugin
                 fi
                 "
                 '''
